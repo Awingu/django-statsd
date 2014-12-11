@@ -7,16 +7,18 @@ import time
 class GraphiteMiddleware(object):
 
     def process_response(self, request, response):
-        statsd.incr('response.%s' % response.status_code)
-        if hasattr(request, 'user') and request.user.is_authenticated():
-            statsd.incr('response.auth.%s' % response.status_code)
+        if hasattr(request, '_view_module'):
+            data = dict(module=request._view_module,
+                        method=request.method,
+                        status_code=response.status_code)
+            target = 'frontend-web.{method}.{status_code}.requests'
+            statsd.incr(target.format(**data))
         return response
 
     def process_exception(self, request, exception):
         if not isinstance(exception, Http404):
-            statsd.incr('response.500')
-            if hasattr(request, 'user') and request.user.is_authenticated():
-                statsd.incr('response.auth.500')
+            data = dict(method=request.method)
+            statsd.incr('frontend-web.{method}.500.requests'.format(**data))
 
 
 class GraphiteRequestTimingMiddleware(object):
@@ -34,20 +36,23 @@ class GraphiteRequestTimingMiddleware(object):
             pass
 
     def process_response(self, request, response):
-        self._record_time(request)
+        self._record_time(request, response)
         return response
 
     def process_exception(self, request, exception):
-        self._record_time(request)
+        self._record_time(request, exception)
 
-    def _record_time(self, request):
+    def _record_time(self, request, response):
         if hasattr(request, '_start_time'):
             ms = int((time.time() - request._start_time) * 1000)
-            data = dict(module=request._view_module, name=request._view_name,
-                        method=request.method)
-            statsd.timing('view.{module}.{name}.{method}'.format(**data), ms)
-            statsd.timing('view.{module}.{method}'.format(**data), ms)
-            statsd.timing('view.{method}'.format(**data), ms)
+            if hasattr(response, 'status_code'):
+                data = dict(method=request.method,
+                            status_code=response.status_code)
+                target = 'frontend-web.{method}.{status_code}.duration'
+            else:
+                data = dict(method=request.method)
+                target = 'frontend-web.{method}.duration'
+            statsd.timing(target.format(**data), ms)
 
 
 class TastyPieRequestTimingMiddleware(GraphiteRequestTimingMiddleware):
