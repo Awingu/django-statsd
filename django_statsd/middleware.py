@@ -5,9 +5,13 @@ from django.conf import settings
 from django.http import Http404
 
 from django_statsd.clients import statsd
+try:
+    from django.utils.deprecation import MiddlewareMixin
+except ImportError:
+    MiddlewareMixin = object
 
 
-class GraphiteMiddleware(object):
+class GraphiteMiddleware(MiddlewareMixin):
 
     def process_response(self, request, response):
         if hasattr(request, '_view_module'):
@@ -24,7 +28,7 @@ class GraphiteMiddleware(object):
             statsd.incr('frontend-web.{method}.500.requests'.format(**data))
 
 
-class GraphiteRequestTimingMiddleware(object):
+class GraphiteRequestTimingMiddleware(MiddlewareMixin):
     """statsd's timing data per view."""
 
     def process_view(self, request, view_func, view_args, view_kwargs):
