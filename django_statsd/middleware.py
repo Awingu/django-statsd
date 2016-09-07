@@ -1,7 +1,9 @@
-from django.http import Http404
-from django_statsd.clients import statsd
 import inspect
 import time
+
+from django.http import Http404
+
+from django_statsd.clients import statsd
 
 
 class GraphiteMiddleware(object):
@@ -64,4 +66,5 @@ class TastyPieRequestTimingMiddleware(GraphiteRequestTimingMiddleware):
             request._view_name = view_kwargs['resource_name']
             request._start_time = time.time()
         except (AttributeError, KeyError):
-            pass
+            super(TastyPieRequestTimingMiddleware, self).process_view(
+                request, view_func, view_args, view_kwargs)

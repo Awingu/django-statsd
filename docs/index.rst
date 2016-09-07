@@ -16,6 +16,28 @@ Credits:
 Changes
 -------
 
+0.3.14:
+
+- pypy testing support
+- log model changes
+- log celery events
+- log db queries
+- show lower/mean/upper values in debugbar, thanks jonathanslenders!
+
+0.3.12:
+
+- Event better Django 1.6 support for the patches, with tests.
+
+0.3.11:
+
+- Django 1.6 support
+
+0.3.9:
+
+- statsd 2.0 support
+
+- improved Django debug toolbar support
+
 0.3.8.5:
 
 - don't count some 404 as 500 and fix deprecation warnings
@@ -123,7 +145,7 @@ For example::
         statsd.incr('response.200')
 
 Django statsd will choose the client as specified in your config and send the
-data to it. You can change you client by specifying it in the config, the
+data to it. You can change your client by specifying it in the config, the
 default is::
 
         STATSD_CLIENT = 'django_statsd.clients.normal'
@@ -194,6 +216,24 @@ The key is added on to the root. So if you've got a key of `view.GET` this
 would look that up on the graphite server with the key::
 
         stats.addons.view.GET
+
+Django Model save and delete integration
+----------------------------------------
+
+You can log all create, update and delete events of django models.
+Add to your Django settings::
+
+        STATSD_MODEL_SIGNALS = True
+
+Celery signals integration
+--------------------------
+
+You can log all the ``task_sent``, ``task_prerun``, ``task_postrun`` and
+``task_failure`` signals of celery along with the duration of succesful tasks.
+
+To enable this, add the following to your Django settings::
+
+        STATSD_CELERY_SIGNALS = True
 
 Front end timing integration
 ----------------------------
@@ -298,6 +338,13 @@ do this by adding in the handler. For example in your logging configuration::
         },
     }
 
+Testing
+=======
+
+You can run tests with the following command:
+
+    DJANGO_SETTINGS_MODULE='django_statsd.test_settings' nosetests
+
 Nose
 ====
 
@@ -309,13 +356,28 @@ in your tests. To use run tests with the following::
 Contributors
 ~~~~~~~~~~~~
 
-* streeter: https://github.com/andymckay/django-statsd/pull/10
-* crankycoder: https://github.com/andymckay/django-statsd/pull/13
-* glogiotatidis: https://github.com/andymckay/django-statsd/pull/16
-* tominsam: https://github.com/andymckay/django-statsd/pull/17
-* youngbob: https://github.com/andymckay/django-statsd/pull/19
-* jsatt: https://github.com/andymckay/django-statsd/pull/20
-* youngbob: https://github.com/andymckay/django-statsd/pull/21
+* streeter
+* crankycoder
+* glogiotatidis
+* tominsam
+* youngbob
+* jsatt
+* youngbob
+* jsocol
+* janfabry
+* tomchristie
+* diox
+* frewsxcv
+* fud
+* ftobia
+* jawnb
+* fgallina
+* jonathanslenders
+* streeter
+
+See:
+
+https://github.com/andymckay/django-statsd/pulls?direction=desc&page=1&sort=created&state=closed
 
 Indices and tables
 ==================
